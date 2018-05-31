@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <title>Vue Sample</title>
+  </head>
+  <body>
+    <div id="app">
+      {{ message }}
+      <button>컴포넌트등록</button>
+      <my-component></my-component>
+      <my-local-component></my-local-component>
+    </div>
+    <div id="app0">
+      <my-component1></my-component1>
+      <my-component2></my-component2>
+    </div>
+    <div id="app2">
+      {{ message }}
+      <child-component v-bind:pro="message"></child-component>
+    </div>
+    <div id="app3">
+      {{ message }}
+      <child-component2 v-on:show-log="printText"></child-component2>
+    </div>
+
+    <div id="app4">
+        <child-component3></child-component3>
+    </div>
+
+    <div id="app5">
+        <p>
+            <router-link to="/main">이동1</router-link>
+            <router-link to="/login">이동2</router-link>
+        </p>
+        <router-view></router-view>
+    </div>
+
+    <div id="app6">
+      <router-view name="header"></router-view>
+      <router-view></router-view>
+      <router-view name="footer"></router-view>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.2/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      Vue.component("my-component", {
+          template : "<div>전역 컴포넌트 등록</div>"
+      });
+
+      var cmp = {
+        template : "<div>지역 컴포넌트 등록</div>"
+      }
+
+      new Vue({
+        el: '#app',
+        data: {
+          message: 'Hello Vue.js!',
+        },
+        beforeCreate : function(){
+          console.log("beforeCreate");
+        },
+        created : function(){
+          console.log("created");
+        },
+        mounted : function(){
+          console.log("mounted");
+          this.message ="test";
+        },
+        updated : function(){
+          console.log("updated");
+        },
+        components : {
+          'my-local-component' : cmp
+        }
+      });
+
+
+      var cmp1 = {
+        template : "<div>첫번째 지역 컴포넌트 : {{cmp1Data}}</div>",
+        data : function(){
+          return {
+            cmp1Data : 100
+          }
+        }
+      };
+
+      var cmp2 = {
+        template : "<div>두번째 지역 컴포넌트 : {{cmp2Data}}</div>",
+        data : function(){
+          return {
+            cmp2Data : cmp1.data.cmp1Data
+          }
+        }
+      };
+
+      new Vue({
+        el : "#app0",
+        components : {
+          "my-component1" : cmp1,
+          "my-component2" : cmp2,
+        }
+      });
+
+      Vue.component("child-component", {
+        props : ["pro"],
+        template : '<p>{{pro}}</p>'
+      });
+
+      new Vue({
+        el : "#app2",
+        data : {
+          message : "Test"
+        }
+      });
+
+      Vue.component("child-component2", {
+        template : "<button v-on:click='showLog'>show</button>",
+        methods : {
+          showLog: function(){
+            this.$emit("show-log");
+          }
+        }
+      });
+
+      var app = new Vue({
+        el : "#app3",
+        data : {
+          message : "Hello Vue passed from Parent"
+        },
+        methods : {
+          printText : function (){
+            console.log("received an event")
+          }
+        }
+      })
+
+      var eventBus = new Vue();
+
+      Vue.component("child-component3", {
+        template : "<div>하위 컴포넌트<button v-on:click='showLog'>show</button></div>",
+        methods : {
+          showLog: function(){
+            eventBus.$emit("triggerEventBus", 100);
+          }
+        }
+      });
+
+      var app4 = new Vue({
+        el : "#app4",
+        created : function(){
+          eventBus.$on("triggerEventBus", function(value){
+            console.log("이벤트 전달 받음 ", value);
+          });
+        }
+      })
+
+      var main = {template : "<div>Main</div>"};
+      var login = {template : "<div>Login</div>"};
+
+      var routes = [
+        {path: '/main', component : main},
+        {path: '/login', component : login}
+      ];
+
+      var router  = new VueRouter({
+        routes
+      });
+
+      var routeApp = new Vue({
+        router
+      }).$mount("#app5");
+
+    var Body = { template: '<div>This is Body</div>' };
+    var Header = { template: '<div>This is Header</div>' };
+    var Footer = { template: '<div>This is Footer</div>' };
+
+    var router = new VueRouter({
+      routes: [
+        {
+          path: '/',
+          components: {
+            default: Body,
+            header: Header,
+            footer: Footer
+          }
+        }
+      ]
+    })
+
+    var app = new Vue({
+      router
+    }).$mount('#app6');
+
+    </script>
+  </body>
+</html>
